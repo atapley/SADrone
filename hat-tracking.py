@@ -41,9 +41,9 @@ class choose_action:
         tf.import_graph_def(graph_def, name='')
 
         self.joysub = rospy.Subscriber(ROBOT_NAME + '/joy', Joy, self.joy_callback, queue_size=1)
-        self.imagesub = rospy.Subscriber(ROBOT_NAME + '/camera/rgb/image_raw', Image, self.image_callback, queue_size=1)
+        self.imagesub = rospy.Subscriber(ROBOT_NAME + '/picamera/image_raw', Image, self.image_callback, queue_size=1)
 
-        self.pub = rospy.Publisher(ROBOT_NAME + '/cmd_vel', Twist, queue_size=1)
+        self.pub = rospy.Publisher(ROBOT_NAME + '/desired/twist', Twist, queue_size=1)
         self.rate = rospy.Rate(RATE)
 
         self.image = None
@@ -51,8 +51,8 @@ class choose_action:
         self.running = 0
         self.count = 0
 
-        self.g_lower_bound = np.array([130, 0, 0])
-        self.g_upper_bound = np.array([255, 0, 0])
+        self.g_lower_bound = np.array([160, 50, 50])
+        self.g_upper_bound = np.array([255, 255, 255])
         self.g_kernel = np.ones((5, 5), np.uint8)
 
     # Set the image to the image_msg
@@ -79,30 +79,11 @@ class choose_action:
 
             hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
 
-            # Mask and denoise the goal in the image
+            # Mask the goal in the image
             g_mask = cv2.inRange(hsv, self.g_lower_bound, self.g_upper_bound)
-            g_denoise = cv2.morphologyEx(g_mask, cv2.MORPH_OPEN, self.g_kernel)
+            res = cv2.bitwise_and(cv_image, cv_image, mask=g_mask)
 
-            # Separate the RGB channels in the image
-            blue_ch = cv_image[:, :, 0]
-            green_ch = cv_image[:, :, 1]
-            red_ch = cv_image[:, :, 2]
-
-            # Overlay the masks with the corresponding channels
-            g_masked = cv2.bitwise_or(blue_ch, g_denoise)
-
-            # Zero out the goal channels
-            green_ch = cv2.bitwise_and(cv2.bitwise_not(g_denoise), green_ch)
-
-            # Add an axis to concatenate onto
-            g_masked = g_masked[:, :, np.newaxis]
-            blue_ch = blue_ch[:, :, np.newaxis]
-            green_ch = green_ch[:, :, np.newaxis]
-            red_ch = red_ch[:, :, np.newaxis]
-
-            new_img = np.concatenate([red_ch, green_ch, g_masked], axis=2)
-
-            obs = np.squeeze(new_img)
+            obs = np.squeeze(res)
             new_img = cv2.resize(obs, TRAINING_DIMS, interpolation=cv2.INTER_AREA)
 
             np_img = new_img[np.newaxis, :, :, :]
@@ -116,15 +97,13 @@ class choose_action:
             action = action_probs
             # cv2.imwrite('/ros_node/run_imgs/pic_masked_' + str(self.count) + '.png', new_img)
 
-            # Message to be published to /cmd_vel
             p_msg = Twist()
 
             p_msg.linear.x = 0.5 * action[0]
 
-            p_msg.angular.z = action[1]
+            p_msg.linear.z = 0.5 * action[1]
 
-
-            # Publish the action msg to the cmd_vel topic so the robot moves
+            # Publish the action msg to the twist topic so the robot moves
             self.pub.publish(p_msg)
             self.rate.sleep()
             self.count += 1
@@ -144,4 +123,3 @@ class choose_action:
 if __name__ == '__main__':
     rospy.init_node('action')
     model = choose_action()
-    model.main()

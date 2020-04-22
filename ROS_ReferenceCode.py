@@ -18,7 +18,7 @@ import time
 # Hyperparameters
 MODEL = "RedObstacle"
 META_PATH = "./models/" + MODEL + "/model.cptk.meta"
-VARIABLE_PATH = "./models/" + MODEL + "/model.cptk"
+VARIABLE_PATH = "./models/" + MODEL + "/model.cptk.index"
 ROBOT_NAME = "****"
 RATE = 10
 TRAINING_DIMS = (320, 240)

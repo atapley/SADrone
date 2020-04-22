@@ -82,6 +82,7 @@ class choose_action:
             # Mask the goal in the image
             g_mask = cv2.inRange(hsv, self.g_lower_bound, self.g_upper_bound)
             res = cv2.bitwise_and(cv_image, cv_image, mask=g_mask)
+            res[g_mask == 255] = (0, 0, 255)
 
             obs = np.squeeze(res)
             new_img = cv2.resize(obs, TRAINING_DIMS, interpolation=cv2.INTER_AREA)

@@ -2,7 +2,6 @@
 
 import roslib
 
-roslib.load_manifest('fp_nav')
 import sys
 import rospy
 import cv2
@@ -12,7 +11,8 @@ from geometry_msgs.msg import Twist
 # from sensor_msgs.msg import Joy
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 from tensorflow.python.platform import gfile
 import time
 

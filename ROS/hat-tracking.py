@@ -9,7 +9,7 @@ import cv2
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
-from sensor_msgs.msg import Joy
+# from sensor_msgs.msg import Joy
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 import tensorflow as tf
@@ -40,14 +40,14 @@ class choose_action:
         self.sess.graph.as_default()
         tf.import_graph_def(graph_def, name='')
 
-        self.joysub = rospy.Subscriber(ROBOT_NAME + '/joy', Joy, self.joy_callback, queue_size=1)
+        # self.joysub = rospy.Subscriber(ROBOT_NAME + '/joy', Joy, self.joy_callback, queue_size=1)
         self.imagesub = rospy.Subscriber(ROBOT_NAME + '/picamera/image_raw', Image, self.image_callback, queue_size=1)
 
         self.pub = rospy.Publisher(ROBOT_NAME + '/desired/twist', Twist, queue_size=1)
         self.rate = rospy.Rate(RATE)
 
         self.image = None
-        self.joy = None
+        # self.joy = None
         self.running = 0
         self.count = 0
 
@@ -61,15 +61,15 @@ class choose_action:
             self.image = image_msg
             self.callback()
 
-    # Set the joy to the joy_msg
-    def joy_callback(self, joy_msg):
-        if not self.running:
-            self.joy = joy_msg
-            self.callback()
+    # # Set the joy to the joy_msg
+    # def joy_callback(self, joy_msg):
+    #     if not self.running:
+    #         self.joy = joy_msg
+    #         self.callback()
 
     # If button is pushed, then run through model and publish
     def callback(self):
-        if (self.joy is not None and self.image is not None and self.joy.buttons[0] == 1 and not self.running):
+        if (self.image is not None and not self.running):
             self.running = 1
             # Convert the camera image to a cv image
             try:
@@ -109,7 +109,7 @@ class choose_action:
             self.rate.sleep()
             self.count += 1
             self.image = None
-            self.joy = None
+            # self.joy = None
             self.running = 0
         else:
             pass

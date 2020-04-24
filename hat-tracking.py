@@ -20,7 +20,7 @@ import time
 MODEL = "Tracker-Test"
 META_PATH = "./models/" + MODEL + "/model-300000.ckpt.meta"
 VARIABLE_PATH = "./models/" + MODEL + "/raw_graph_def.pb"
-ROBOT_NAME = "****"
+ROBOT_NAME = "/pidrone"
 RATE = 10
 TRAINING_DIMS = (360, 240)
 SPEED = 1
